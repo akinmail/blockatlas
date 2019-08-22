@@ -63,7 +63,7 @@ type MessageValueDelegate struct {
 
 // Fee - also references the "amount" struct
 type Fee struct {
-	FeeAmount []Amount `json:"amount"`
+	Amount []Amount `json:"amount"`
 }
 
 // Amount - the asset & quantity. Always seems to be enclosed in an array/list for some reason.
@@ -75,14 +75,15 @@ type Amount struct {
 
 // # Staking
 
-type CosmosCommission struct {
+type Commission struct {
 	Rate string `json:"rate"`
 }
 
 type CosmosValidator struct {
-	Status           int              `json:"status"`
-	Operator_Address string           `json:"operator_address"`
-	Commission       CosmosCommission `json:"commission"`
+	Status          int        `json:"status"`
+	OperatorAddress string     `json:"operator_address"`
+	Commission      Commission `json:"commission"`
+	Tokens          string     `json:"tokens"`
 }
 
 type StakingPool struct {

@@ -14,11 +14,17 @@ type StakingReward struct {
 	Annual float64 `json:"annual"`
 }
 
+type Tokens struct {
+	// Number of staked tokens
+	Bounded int64 `json:"bounded"`
+}
+
 type Validator struct {
 	Coin   coin.Coin
 	ID     string        `json:"id"`
 	Status bool          `json:"status"`
 	Reward StakingReward `json:"reward"`
+	Tokens Tokens        `json:"tokens"`
 }
 
 type StakeValidatorInfo struct {
@@ -33,4 +39,5 @@ type StakeValidator struct {
 	Status bool               `json:"status"`
 	Info   StakeValidatorInfo `json:"info"`
 	Reward StakingReward      `json:"reward"`
+	Tokens Tokens             `json:"tokens"`
 }

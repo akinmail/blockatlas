@@ -85,9 +85,7 @@ func (p *Platform) GetValidators() (blockatlas.ValidatorPage, error) {
 		return results, nil
 	}
 
-	for _, validator := range validators {
-		results = append(results, normalizeValidator(validator, pool, inflation, p.Coin()))
-	}
+	results = normalizeValidators(validators, pool, inflation, p.Coin())
 
 	return results, nil
 }
@@ -110,10 +108,10 @@ func Normalize(srcTx *Tx) (tx blockatlas.Tx, ok bool) {
 	block, _ := strconv.ParseUint(srcTx.Block, 10, 64)
 	// Sometimes fees can be null objects (in the case of no fees e.g. F044F91441C460EDCD90E0063A65356676B7B20684D94C731CF4FAB204035B41)
 	var fee string
-	if len(srcTx.Data.Contents.Fee.FeeAmount) == 0 {
+	if len(srcTx.Data.Contents.Fee.Amount) == 0 {
 		fee = "0"
 	} else {
-		fee, _ = util.DecimalToSatoshis(srcTx.Data.Contents.Fee.FeeAmount[0].Quantity)
+		fee, _ = util.DecimalToSatoshis(srcTx.Data.Contents.Fee.Amount[0].Quantity)
 	}
 
 	tx = blockatlas.Tx{
@@ -179,16 +177,31 @@ func fillDelegate(tx *blockatlas.Tx, delegate MessageValueDelegate, msgType stri
 	}
 }
 
-func normalizeValidator(v CosmosValidator, p StakingPool, inflation float64, c coin.Coin) (validator blockatlas.Validator) {
+func normalizeValidators(validators []CosmosValidator, pool StakingPool, inflation float64, c coin.Coin) blockatlas.ValidatorPage {
+	results := make(blockatlas.ValidatorPage, 0)
+	for _, validator := range validators {
+		if value, err := normalizeValidator(validator, pool, inflation, c); err == nil {
+			results = append(results, value)
+		}
+	}
+	return results
+}
+
+func normalizeValidator(v CosmosValidator, p StakingPool, inflation float64, c coin.Coin) (blockatlas.Validator, error) {
 
 	reward := CalculateAnnualReward(p, inflation, v)
+	tokens, err := strconv.Atoi(v.Tokens)
+	if err != nil {
+		return blockatlas.Validator{}, err
+	}
 
 	return blockatlas.Validator{
 		Coin:   c,
 		Status: bool(v.Status == 2),
-		ID:     v.Operator_Address,
+		ID:     v.OperatorAddress,
 		Reward: blockatlas.StakingReward{Annual: reward},
-	}
+		Tokens: blockatlas.Tokens{Bounded: int64(tokens)},
+	}, nil
 }
 
 func CalculateAnnualReward(p StakingPool, inflation float64, validator CosmosValidator) float64 {

@@ -2,11 +2,11 @@ package assets
 
 import (
 	"github.com/trustwallet/blockatlas"
-	"time"
-
 	"github.com/trustwallet/blockatlas/coin"
 	"net/http"
 	"net/url"
+	"sort"
+	"time"
 )
 
 var client = http.Client{
@@ -34,6 +34,10 @@ func NormalizeValidators(validators []blockatlas.Validator, assets []AssetValida
 		}
 	}
 
+	sort.SliceStable(results, func(i, j int) bool {
+		return results[i].Tokens.Bounded > results[j].Tokens.Bounded
+	})
+
 	return results
 }
 
@@ -48,6 +52,7 @@ func NormalizeValidator(plainValidator blockatlas.Validator, validator AssetVali
 			Website:     validator.Website,
 		},
 		Reward: plainValidator.Reward,
+		Tokens: plainValidator.Tokens,
 	}
 }
 
